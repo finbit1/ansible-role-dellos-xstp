@@ -140,7 +140,7 @@ protocol spanning-tree mstp
 interface {{ intr }}
       {% if intf_vars.msti is defined and intf_vars.msti %}
         {% for inst in intf_vars.msti %}
-          {% if inst.instance_number is defined and inst.instance_number==0 or inst.instance_number %}
+          {% if inst.instance_number is defined and inst.instance_number==0 or inst.instance_number and inst.state == "present" %}
             {% if inst.priority is defined %}
               {% if inst.priority %}
  spanning-tree msti {{ inst.instance_number }} priority {{ inst.priority }}
@@ -155,17 +155,21 @@ interface {{ intr }}
  no spanning-tree msti {{ inst.instance_number }} cost 1
               {% endif %}
             {% endif %}
+          {% elif inst.instance_number is defined and inst.state == "absent" %}
+no spanning-tree msti {{ inst.instance_number }} priority
+no spanning-tree msti {{ inst.instance_number }} cost
           {% endif %}
         {% endfor %}
       {% endif %}
-      {% if intf_vars.mstp is defined and intf_vars.mstp %}
-          {% if intf_vars.mstp.edge_port is defined %}
-            {% if intf_vars.mstp.bpduguard is not defined or intf_vars.mstp.bpduguard is defined and intf_vars.mstp.bpduguard == false %}
+
+      {% if intf_vars.stp_type is defined and intf_vars.stp_type == "mstp" %}
+          {% if intf_vars.edge_port is defined %}
+            {% if intf_vars.bpdu_guard is not defined or intf_vars.bpdu_guard is defined and intf_vars.bpdu_guard == false %}
 no spanning-tree mstp edge-port bpduguard
             {% endif %}
-            {% if intf_vars.mstp.edge_port is defined and intf_vars.mstp.edge_port and intf_vars.mstp.bpduguard is defined and intf_vars.mstp.bpduguard %}
+            {% if intf_vars.edge_port is defined and intf_vars.edge_port and intf_vars.bpdu_guard is defined and intf_vars.bpdu_guard %}
 spanning-tree mstp edge-port bpduguard
-            {% elif intf_vars.mstp.edge_port is defined and intf_vars.mstp.edge_port%}
+            {% elif intf_vars.edge_port is defined and intf_vars.edge_port %}
 spanning-tree mstp edge-port
             {% else %}
 no spanning-tree mstp edge-port
@@ -173,19 +177,18 @@ no spanning-tree mstp edge-port
           {% else %}
 no spanning-tree mstp edge-port
           {% endif %}
-          {% if intf_vars.mstp.rlguard is defined and intf_vars.mstp.rlguard %}
-              {% if intf_vars.mstp.rlguard == "loopguard" %}
+          {% if intf_vars.guard is defined and intf_vars.guard %}
+              {% if intf_vars.guard == "loop" %}
 spanning-tree mstp loopguard
 no spanning-tree mstp rootguard
-              {% elif intf_vars.mstp.rlguard == "rootguard" %}
+              {% elif intf_vars.guard == "root" %}
 spanning-tree mstp rootguard
 no spanning-tree mstp loopguard
               {% else %}
 no spanning-tree mstp loopguard
 no spanning-tree mstp rootguard
               {% endif %}
-          {% endif %}
-          {% if intf_vars.mstp.rlguard is not defined %}
+          {% else %}
 no spanning-tree mstp loopguard
 no spanning-tree mstp rootguard
           {% endif %}
@@ -194,28 +197,28 @@ no spanning-tree mstp edge-port
 no spanning-tree mstp loopguard
 no spanning-tree mstp rootguard
       {% endif %}
-      {% if intf_vars.rstp is defined and intf_vars.rstp %}
-          {% if intf_vars.rstp.cost is defined %}
-            {% if intf_vars.rstp.cost is defined and intf_vars.rstp.cost|int >= 1 and intf_vars.rstp.cost|int <= 2000000 %}
-spanning-tree rstp cost {{ intf_vars.rstp.cost }}
+      {% if intf_vars.stp_type is defined and intf_vars.stp_type == "rstp" %}
+          {% if intf_vars.cost is defined %}
+            {% if intf_vars.cost is defined and intf_vars.cost|int >= 1 and intf_vars.cost|int <= 2000000 %}
+spanning-tree rstp cost {{ intf_vars.cost }}
             {% endif %}
           {% else %}
 no spanning-tree rstp cost
           {% endif %}
-          {% if intf_vars.rstp.priority is defined %}
-            {% if intf_vars.rstp.priority is defined and intf_vars.rstp.priority|int >= 1 and intf_vars.rstp.priority|int <= 240 %}
-spanning-tree rstp priority {{ intf_vars.rstp.priority }}
+          {% if intf_vars.priority is defined %}
+            {% if intf_vars.priority is defined and intf_vars.priority|int >= 1 and intf_vars.priority|int <= 240 %}
+spanning-tree rstp priority {{ intf_vars.priority }}
             {% endif %}
           {% else %}
 no spanning-tree rstp priority 
           {% endif %}
-          {% if intf_vars.rstp.edge_port is defined %}
-            {% if intf_vars.rstp.bpduguard is not defined or intf_vars.rstp.bpduguard is defined and intf_vars.rstp.bpduguard == false %}
+          {% if intf_vars.edge_port is defined %}
+            {% if intf_vars.bpdu_guard is not defined or intf_vars.bpdu_guard is defined and intf_vars.bpdu_guard == false %}
 no spanning-tree rstp edge-port bpduguard
             {% endif %}
-            {% if intf_vars.rstp.edge_port is defined and intf_vars.rstp.edge_port and intf_vars.rstp.bpduguard is defined and intf_vars.rstp.bpduguard %}
+            {% if intf_vars.edge_port is defined and intf_vars.edge_port and intf_vars.bpdu_guard is defined and intf_vars.bpdu_guard %}
 spanning-tree rstp edge-port bpduguard
-            {% elif intf_vars.rstp.edge_port is defined and intf_vars.rstp.edge_port%}
+            {% elif intf_vars.edge_port is defined and intf_vars.edge_port%}
 spanning-tree rstp edge-port
             {% else %}
 no spanning-tree rstp edge-port
@@ -223,19 +226,18 @@ no spanning-tree rstp edge-port
           {% else %}
 no spanning-tree rstp edge-port
           {% endif %}
-          {% if intf_vars.rstp.rlguard is defined and intf_vars.rstp.rlguard %}
-              {% if intf_vars.rstp.rlguard == "loopguard" %}
+          {% if intf_vars.guard is defined and intf_vars.guard  %}
+              {% if intf_vars.guard == "loop" %}
 spanning-tree rstp loopguard
 no spanning-tree rstp rootguard
-              {% elif intf_vars.rstp.rlguard == "rootguard" %}
+              {% elif intf_vars.guard == "root" %}
 spanning-tree rstp rootguard
 no spanning-tree rstp loopguard
               {% else %}
 no spanning-tree rstp loopguard
 no spanning-tree rstp rootguard
               {% endif %}
-          {% endif %}
-          {% if intf_vars.rstp.rlguard is not defined %}
+          {% else %}
 no spanning-tree rstp loopguard
 no spanning-tree rstp rootguard
           {% endif %}
