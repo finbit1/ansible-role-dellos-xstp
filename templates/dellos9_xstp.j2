@@ -27,11 +27,17 @@ dellos_xstp:
           bridge_priority: 4096
       state: present
     intf:
-      fortyGigE 1/1:
-        stp_type:
-          - rstp
-          - mstp
+      Port-Channel 1:
+        msti:
+          - instance_number: 2
+            cost: 3000
+            priority: 224
+            state: present
+      GigabitEthernet1/3:
+        stp_type: mstp
+        bpdu_guard: true
         edge_port: true
+        guard: root
 
 ############################################}
 {% if dellos_xstp is defined and dellos_xstp %}
