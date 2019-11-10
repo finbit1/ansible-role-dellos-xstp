@@ -79,8 +79,8 @@ Role variables
 | ``intf.<interface name>.bpdu_filter``| boolean: true,false | Enables or disables bpdufilter at the interface | dellos10 |
 | ``intf.<interface name>.bpdu_guard``| boolean: true,false | Enables or disables bpduguard at the interface | dellos9, dellos10 |
 | ``intf.<interface name>.guard``| string: loop,root,none | Configures guard on the interface | dellos9, dellos10 |
-| ``intf.<interface name>.cost``| integer | Configures cost for RSTP and STP. RSTP range 1-2000000. STP range 1-65535 | dellos9,dellos10 |
-| ``intf.<interface name>.priority``| integer | Configures priority for RSTP and STP. RSTP Range 0-224. STP range 0-15 | dellos9, dellos10 |
+| ``intf.<interface name>.cost``| integer | Configures cost for RSTP and STP. RSTP range 1-2000000. STP range 1-65535. Removes setting if out of range. | dellos9,dellos10 |
+| ``intf.<interface name>.priority``| integer | Configures priority for RSTP and STP. RSTP Range 0-224. STP range 0-15. Remove setting if out of range. | dellos9, dellos10 |
 | ``intf.<interface name>.enable`` | boolean: true,false | Enables or disables spanning-tree at the interface level  | dellos10 |
 | ``intf.<interface name>.link_type``| string: auto,point-to-point,shared. | Configures the link type at the interface | dellos10 |
 | ``intf.<interface name>.rstp`` | dictionary | Configures the RSTP interface name (see ``intf.<interface name>.rstp.*``) | dellos10 |
