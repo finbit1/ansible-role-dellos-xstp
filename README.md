@@ -74,20 +74,22 @@ Role variables
 | ``cfg_list.vlans_state`` | string: absent,present\* | Deletes a set of VLANs mapped to the spanning-tree instance if set to absent | dellos10 |
 | ``intf`` | list | Configures multiple spanning-tree in an interface (see ``intf.*``)  | dellos6, dellos9, dellos10 |
 | ``intf <interface name>``| dictionary | Configures the interface name (see ``intf.<interface name>.*``) | dellos6, dellos9, dellos10 |
-| ``intf.<interface name>.stp_type`` | list: stp,mstp,MSTi,pvst,rstp | Configures the list of spanning-tree in an interface | dellos9 |
+| ``intf.<interface name>.stp_type`` | list: mstp,rstp,stp | Configures the type of spanning-tree settings on an interface | dellos9 |
 | ``intf.<interface name>.edge_port`` | boolean: true,false | Configures the EdgePort as dynamic if set to true in dellos10 devices; in dellos9 devices according to the stp_type EdgePort is configured; in OS6 devices it enables port fast at the interface level if set to true | dellos6, dellos9, dellos10 |
 | ``intf.<interface name>.bpdu_filter``| boolean: true,false | Enables or disables bpdufilter at the interface | dellos10 |
-| ``intf.<interface name>.bpdu_guard``| boolean: true,false | Enables or disables bpduguard at the interface | dellos10 |
-| ``intf.<interface name>.guard``| string: loop,root,none | Configures guard on the interface | dellos10 |
+| ``intf.<interface name>.bpdu_guard``| boolean: true,false | Enables or disables bpduguard at the interface | dellos9, dellos10 |
+| ``intf.<interface name>.guard``| string: loop,root,none | Configures guard on the interface | dellos9, dellos10 |
+| ``intf.<interface name>.cost``| integer | Configures cost for RSTP and STP. RSTP range 1-2000000. STP range 1-65535. Removes setting if out of range. | dellos9,dellos10 |
+| ``intf.<interface name>.priority``| integer | Configures priority for RSTP and STP. RSTP Range 0-224. STP range 0-15. Remove setting if out of range. | dellos9, dellos10 |
 | ``intf.<interface name>.enable`` | boolean: true,false | Enables or disables spanning-tree at the interface level  | dellos10 |
 | ``intf.<interface name>.link_type``| string: auto,point-to-point,shared. | Configures the link type at the interface | dellos10 |
 | ``intf.<interface name>.rstp`` | dictionary | Configures the RSTP interface name (see ``intf.<interface name>.rstp.*``) | dellos10 |
 | ``rstp.priority``| integer | Configures the RSTP priority value at the interface | dellos10 |
 | ``rstp.cost`` | integer | Configures the RSTP cost value at the interface | dellos10 |
 | ``intf.<interface name>.msti`` | list | Configures the MSTi interface name (see ``intf.<interface name>.msti``) | dellos10 |
-| ``msti.instance_number`` | integer or range | Specifies the MSTP instance number or range | dellos10 |
-| ``msti.priority`` | integer | Specifies the priority value to be configured at the interface | dellos10 |
-| ``msti.cost`` | integer | Specifies the cost value to be configured at the interface | dellos10 |
+| ``msti.instance_number`` | integer or range | Specifies the MSTP instance number or range | desllos9, dellos10 |
+| ``msti.priority`` | integer | Specifies the priority value to be configured at the interface | dellos9, dellos10 |
+| ``msti.cost`` | integer | Specifies the cost value to be configured at the interface | dellos9, dellos10 |
 | ``intf.<interface name>.vlan`` | list | Configures the VLAN interface name (see ``intf.<interface name>.vlan``)  | dellos10 |
 | ``vlan.instance_number`` | integer or range | Specifies the VLAN ID or range | dellos10 |
 | ``vlan.priority`` | integer | Specifies the priority value to be configured at the interface | dellos10 |

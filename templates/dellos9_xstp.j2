@@ -27,11 +27,17 @@ dellos_xstp:
           bridge_priority: 4096
       state: present
     intf:
-      fortyGigE 1/1:
-        stp_type:
-          - rstp
-          - mstp
+      Port-Channel 1:
+        msti:
+          - instance_number: 2
+            cost: 3000
+            priority: 224
+            state: present
+      GigabitEthernet1/3:
+        stp_type: mstp
+        bpdu_guard: true
         edge_port: true
+        guard: root
 
 ############################################}
 {% if dellos_xstp is defined and dellos_xstp %}
@@ -138,25 +144,165 @@ protocol spanning-tree mstp
   {% for intr in xstp_vars.intf.keys() %}
     {% set intf_vars = xstp_vars.intf[intr] %}
 interface {{ intr }}
-      {% for type in intf_vars.stp_type %}
-        {% if type == "stp" %}
+      {% if intf_vars.msti is defined and intf_vars.msti %}
+        {% for inst in intf_vars.msti %}
+          {% if inst.instance_number is defined and inst.instance_number==0 or inst.instance_number and inst.state == "present" %}
+            {% if inst.priority is defined %}
+              {% if inst.priority %}
+ spanning-tree msti {{ inst.instance_number }} priority {{ inst.priority }}
+              {% else %}
+ no spanning-tree msti {{ inst.instance_number }} priority 1
+              {% endif %}
+            {% endif %}
+            {% if inst.cost is defined %}
+              {% if inst.cost %}
+ spanning-tree msti {{ inst.instance_number }} cost {{ inst.cost }}
+              {% else %}
+ no spanning-tree msti {{ inst.instance_number }} cost 1
+              {% endif %}
+            {% endif %}
+          {% elif inst.instance_number is defined and inst.state == "absent" %}
+no spanning-tree msti {{ inst.instance_number }} priority
+no spanning-tree msti {{ inst.instance_number }} cost
+          {% endif %}
+        {% endfor %}
+      {% endif %}
+
+      {% if intf_vars.stp_type is defined and intf_vars.stp_type == "mstp" %}
           {% if intf_vars.edge_port is defined %}
-            {% if not intf_vars.edge_port %}
- no spanning-tree 0 portfast
+            {% if intf_vars.bpdu_guard is not defined or intf_vars.bpdu_guard is defined and intf_vars.bpdu_guard == false %}
+no spanning-tree mstp edge-port bpduguard
+            {% endif %}
+            {% if intf_vars.edge_port is defined and intf_vars.edge_port and intf_vars.bpdu_guard is defined and intf_vars.bpdu_guard %}
+spanning-tree mstp edge-port bpduguard
+            {% elif intf_vars.edge_port is defined and intf_vars.edge_port %}
+spanning-tree mstp edge-port
             {% else %}
- spanning-tree 0 portfast bpduguard
+no spanning-tree mstp edge-port
+            {% endif %}
+          {% else %}
+no spanning-tree mstp edge-port
+          {% endif %}
+          {% if intf_vars.guard is defined and intf_vars.guard %}
+              {% if intf_vars.guard == "loop" %}
+spanning-tree mstp loopguard
+no spanning-tree mstp rootguard
+              {% elif intf_vars.guard == "root" %}
+spanning-tree mstp rootguard
+no spanning-tree mstp loopguard
+              {% else %}
+no spanning-tree mstp loopguard
+no spanning-tree mstp rootguard
+              {% endif %}
+          {% else %}
+no spanning-tree mstp loopguard
+no spanning-tree mstp rootguard
+          {% endif %}
+      {% else %}
+no spanning-tree mstp edge-port
+no spanning-tree mstp loopguard
+no spanning-tree mstp rootguard
+      {% endif %}
+
+      {% if intf_vars.stp_type is defined and intf_vars.stp_type == "rstp" %}
+          {% if intf_vars.cost is defined %}
+            {% if intf_vars.cost is defined and intf_vars.cost|int >= 1 and intf_vars.cost|int <= 2000000 %}
+spanning-tree rstp cost {{ intf_vars.cost }}
+            {% endif %}
+          {% else %}
+no spanning-tree rstp cost
+          {% endif %}
+          {% if intf_vars.priority is defined %}
+            {% if intf_vars.priority is defined and intf_vars.priority|int >= 0 and intf_vars.priority|int <= 240 %}
+spanning-tree rstp priority {{ intf_vars.priority }}
+            {% endif %}
+          {% else %}
+no spanning-tree rstp priority 
+          {% endif %}
+          {% if intf_vars.edge_port is defined %}
+            {% if intf_vars.bpdu_guard is not defined or intf_vars.bpdu_guard is defined and intf_vars.bpdu_guard == false %}
+no spanning-tree rstp edge-port bpduguard
+            {% endif %}
+            {% if intf_vars.edge_port is defined and intf_vars.edge_port and intf_vars.bpdu_guard is defined and intf_vars.bpdu_guard %}
+spanning-tree rstp edge-port bpduguard
+            {% elif intf_vars.edge_port is defined and intf_vars.edge_port%}
+spanning-tree rstp edge-port
+            {% else %}
+no spanning-tree rstp edge-port
+            {% endif %}
+          {% else %}
+no spanning-tree rstp edge-port
+          {% endif %}
+          {% if intf_vars.guard is defined and intf_vars.guard  %}
+              {% if intf_vars.guard == "loop" %}
+spanning-tree rstp loopguard
+no spanning-tree rstp rootguard
+              {% elif intf_vars.guard == "root" %}
+spanning-tree rstp rootguard
+no spanning-tree rstp loopguard
+              {% else %}
+no spanning-tree rstp loopguard
+no spanning-tree rstp rootguard
+              {% endif %}
+          {% else %}
+no spanning-tree rstp loopguard
+no spanning-tree rstp rootguard
+          {% endif %}
+      {% else %}
+no spanning-tree rstp cost
+no spanning-tree rstp priority
+no spanning-tree rstp edge-port
+no spanning-tree rstp loopguard
+no spanning-tree rstp rootguard
+      {% endif %}
+
+      {% if intf_vars.stp_type is defined and intf_vars.stp_type == "stp" %}
+          {% if intf_vars.cost is defined %}
+            {% if intf_vars.cost is defined and intf_vars.cost|int >= 1 and intf_vars.cost|int <= 2000000 %}
+spanning-tree 0 cost {{ intf_vars.cost }}
+            {% endif %}
+          {% else %}
+no spanning-tree 0 cost
+          {% endif %}
+          {% if intf_vars.priority is defined %}
+            {% if intf_vars.priority is defined and intf_vars.priority|int >= 0 and intf_vars.priority|int <= 15 %}
+spanning-tree 0 priority {{ intf_vars.priority }}
+            {% endif %}
+          {% else %}
+no spanning-tree 0 priority
+          {% endif %}
+          {% if intf_vars.edge_port is defined %}
+            {% if intf_vars.edge_port is defined and intf_vars.edge_port%}
+spanning-tree 0 portfast
+            {% else %}
+no spanning-tree 0 portfast
             {% endif %}
           {% endif %}
-        {% else %}
-          {% if intf_vars.edge_port is defined %}
-            {% if intf_vars.edge_port %}
- spanning-tree {{ type }} edge-port
-            {% else %}
- no spanning-tree {{ type }} edge-port
-            {% endif %}
+          {% if intf_vars.guard is defined and intf_vars.guard  %}
+              {% if intf_vars.guard == "loop" %}
+spanning-tree 0 loopguard
+no spanning-tree 0 rootguard
+              {% elif intf_vars.guard == "root" %}
+spanning-tree 0 rootguard
+no spanning-tree 0 loopguard
+              {% else %}
+no spanning-tree 0 loopguard
+no spanning-tree 0 rootguard
+              {% endif %}
+          {% else %}
+no spanning-tree 0 loopguard
+no spanning-tree 0 rootguard
           {% endif %}
-        {% endif %}
-      {% endfor %}
+      {% else %}
+no spanning-tree 0 cost
+no spanning-tree 0 priority
+no spanning-tree 0 portfast
+no spanning-tree 0 loopguard
+no spanning-tree 0 rootguard
+      {% endif %}
+
   {% endfor %}
 {% endif %}
+
 {% endif %}
+
